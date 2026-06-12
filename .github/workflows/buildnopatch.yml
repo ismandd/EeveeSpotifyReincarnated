@@ -105,7 +105,7 @@ jobs:
           DEB_URL=$(echo "$UPSTREAM_RELEASE" | jq -r '.assets[] | select(.name | endswith(".deb")) | .browser_download_url' | head -n 1)
           echo "UPSTREAM_VERSION=$UPSTREAM_VERSION" >> $GITHUB_ENV
           echo "STABLE_DEB_URL=$DEB_URL" >> $GITHUB_ENV
-          if [ -z "$UPSTREAM_VERSION" ] || [ "$UPSTREAM_VERSION" = "null" ] || [ -z "$DEB_URL" ] || [ "$DEB_URL" = "null" ]; then
+          if [ -z "$UPSTREAM_VERSION" ] || [ "$UPSTREAM_VERSION" = "null" ]; then
             echo "NEED_STABLE=false" >> $GITHUB_ENV
             echo "STABLE_TAG=vunknown" >> $GITHUB_ENV
           else
@@ -134,7 +134,11 @@ jobs:
           EXT_SRC="${{ env.OPENSPOTIFY_APPEX }}"
           if [ "${{ env.NEED_STABLE }}" = "true" ]; then
             mkdir -p Outputs/stable/deb-extract
-            wget "${{ env.STABLE_DEB_URL }}" -O Outputs/stable/stable.deb
+            if [ -n "${{ env.STABLE_DEB_URL }}" ] && [ "${{ env.STABLE_DEB_URL }}" != "null" ]; then
+              wget "${{ env.STABLE_DEB_URL }}" -O Outputs/stable/stable.deb
+            else
+              cp "${{ env.NIGHTLY_DEB_PATH }}" Outputs/stable/stable.deb
+            fi
             dpkg-deb -R Outputs/stable/stable.deb Outputs/stable/deb-extract
             DYLIB_SRC=$(find Outputs/stable/deb-extract -name 'EeveeSpotify.dylib' | head -1)
             BUNDLE_SRC=$(find Outputs/stable/deb-extract -type d -name 'EeveeSpotify.bundle' | head -1)
