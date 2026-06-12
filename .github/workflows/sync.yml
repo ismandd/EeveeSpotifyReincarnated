@@ -1,0 +1,29 @@
+name: Sync Upstream
+
+on:
+  schedule:
+    - cron: '* * * * *'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Fork
+        uses: actions/checkout@v4
+        with:
+          ref: Master
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Sync with Upstream
+        run: |
+          git remote add upstream https://github.com/jaydenjcpy/EeveeSpotifyReincarnated.git
+          git fetch upstream
+          git checkout Master
+          git merge upstream/Master --allow-unrelated-histories -m "Force sync upstream history"
+          git push origin Master
